@@ -43,9 +43,9 @@ SectionGroupEnd
 
 SectionGroup /e "Builds"
 
-Section "CTeX 2.8"
-	${Build} "CTeX_2.8"
-SectionEnd
+;Section "CTeX 2.8"
+;	${Build} "CTeX_2.8"
+;SectionEnd
 
 Section "CTeX 2.9"
 	${Build} "CTeX_2.9"

@@ -23,7 +23,7 @@ ShowInstDetails show
 !define INI_Key "BuildNumber"
 
 !macro _Build NAME
-	nsExec::ExecToLog '"${Make}" ${NAME}'
+	nsExec::ExecToLog '"${Make}" /INPUTCHARSET UTF8 ${NAME}'
 	Pop $0
 	${If} $0 != 0
 		Abort

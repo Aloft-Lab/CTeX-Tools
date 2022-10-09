@@ -9,10 +9,17 @@ ShowInstDetails nevershow
 !insertmacro MUI_PAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
 
 Section
-	DeleteRegKey HKCU "Software\WinEdt"
-	Delete "C:\CTEX\WinEdt\WinEdt.skd"
+	ReadRegStr $R0 HKCU "Software\WinEdt 7" "Install Root"
+	DeleteRegKey HKCU "Software\WinEdt 7"
+	${If} $R0 == ""
+		StrCpy $R0 "C:\CTEX\WinEdt"
+	${EndIf}
+	Delete "$R0\WinEdt.skd"
+
 SectionEnd
+
