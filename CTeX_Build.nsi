@@ -97,6 +97,8 @@ FunctionEnd
 
 Function .onSelChange
 	${If} ${SectionIsSelected} ${Sec_Update}
+	${OrIf} ${SectionIsSelected} ${Sec_Basic_Group}
+	${OrIf} ${SectionIsSelected} ${Sec_Full_Group}
 	${OrIf} ${SectionIsPartiallySelected} ${Sec_Basic_Group}
 	${OrIf} ${SectionIsPartiallySelected} ${Sec_Full_Group}
 		!insertmacro SelectSection ${Sec_Repair}
