@@ -22,8 +22,8 @@ ShowInstDetails show
 !define INI_Sec "CTeX"
 !define INI_Key "BuildNumber"
 
-!macro _Build NAME
-	nsExec::ExecToLog '"${Make}" /INPUTCHARSET UTF8 ${NAME}'
+!macro _Build NAME OPTIONS
+	nsExec::ExecToLog '"${Make}" /INPUTCHARSET UTF8 ${OPTIONS} ${NAME}'
 	Pop $0
 	${If} $0 != 0
 		Abort
@@ -40,20 +40,40 @@ Section
 SectionEnd
 
 Section "Build Repair" Sec_Repair
-	${Build} "$EXEDIR\CTeX_Repair.nsi"
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_REPAIR"
 SectionEnd
 
-Section "Build Update" Sec_Update
-	${Build} "$EXEDIR\CTeX_Update.nsi"
+Section /o "Build Update" Sec_Update
+	${Build} "$EXEDIR\CTeX_Update.nsi" ""
 SectionEnd
 
-Section "Build Basic Version" Sec_Basic
-	${Build} "$EXEDIR\CTeX_Setup.nsi"
+SectionGroup "Build Basic Version" Sec_Basic_Group
+Section "Basic" Sec_Basic
+	${Build} "$EXEDIR\CTeX_Setup.nsi" ""
 SectionEnd
 
-Section /o "Build Full Version" Sec_Full
-	${Build} "$EXEDIR\CTeX_Full.nsi"
+Section "Basic (x64)" Sec_Basic_x64
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_X64_ONLY"
 SectionEnd
+
+Section "Basic (x86)" Sec_Basic_x86
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_X86_ONLY"
+SectionEnd
+SectionGroupEnd
+
+SectionGroup "Build Full Version" Sec_Full_Group
+Section /o "Full" Sec_Full
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL"
+SectionEnd
+
+Section /o "Full (x64)" Sec_Full_x64
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
+SectionEnd
+
+Section /o "Full (x86)" Sec_Full_x86
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
+SectionEnd
+SectionGroupEnd
 
 Section "Increment build number"
 	${IfNot} ${Errors}
@@ -70,15 +90,15 @@ Function .onInit
 	${If} $BUILD_ALL != ""
 		!insertmacro SelectSection ${Sec_Repair}
 		!insertmacro SelectSection ${Sec_Update}
-		!insertmacro SelectSection ${Sec_Basic}
-		!insertmacro SelectSection ${Sec_Full}
+		!insertmacro SelectSection ${Sec_Basic_Group}
+		!insertmacro SelectSection ${Sec_Full_Group}
 	${EndIf}
 FunctionEnd
 
 Function .onSelChange
 	${If} ${SectionIsSelected} ${Sec_Update}
-	${OrIf} ${SectionIsSelected} ${Sec_Basic}
-	${OrIf} ${SectionIsSelected} ${Sec_Full}
+	${OrIf} ${SectionIsPartiallySelected} ${Sec_Basic_Group}
+	${OrIf} ${SectionIsPartiallySelected} ${Sec_Full_Group}
 		!insertmacro SelectSection ${Sec_Repair}
 	${EndIf}
 FunctionEnd
