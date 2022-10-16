@@ -1,6 +1,6 @@
 
 !include "LogicLib.nsh"
-!include "WinMessages.nsh"
+!include "TextFunc.nsh"
 
 Name "MiKTeX Update"
 OutFile "MiKTeX_Update.exe"
@@ -15,57 +15,36 @@ ShowInstDetails show
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
+Section "Update packages"
 
-!define VERSION "2.7"
+	DetailPrint "Update MiKTeX packages"
+	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose packages update"
 
-Var MIKTEXDIR
-
-Section -Begin
-	ReadRegStr $R0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
-
-	ReadRegStr $0 HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "Install"
-	ReadRegStr $1 HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "SharedSetup"
-	ReadRegStr $2 HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "AutoInstall"
-	ReadRegStr $3 HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RemoteRepository"
-	ReadRegStr $4 HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RepositoryType"
-
-	WriteRegStr HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "SharedSetup" "1"
-	WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "AutoInstall" "2"
-	WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RemoteRepository" "ftp://ftp.ctex.org/CTAN/systems/win32/miktex/tm/packages/"
-	WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RepositoryType" "remote"
 SectionEnd
 
-Section "Update MiKTeX.basic"
-	StrCpy $MIKTEXDIR "$EXEDIR\MiKTeX.basic"
-	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" "$MIKTEXDIR\miktex\bin;$R0"
-	WriteRegStr HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "Install" "$MIKTEXDIR"
-	CopyFiles "$MIKTEXDIR\miktex\config\update.dat" "$EXEDIR\Update_MiKTeX.basic.exe"
-	ExecWait "$EXEDIR\Update_MiKTeX.basic.exe"
-	Delete "$EXEDIR\Update_MiKTeX.basic.exe"
-	ExecWait "$MIKTEXDIR\miktex\bin\mpm_mfc.exe"
+Section /o "Install packages"
+
+	DetailPrint "Install required packages"
+	FileOpen $0 "$EXEDIR\required_packages.txt" "r"
+	${Do}
+		FileRead $0 $9
+		${If} $9 == ""
+			${ExitDo}
+		${EndIf}
+		${TrimNewLines} $9 $8
+		DetailPrint "Installing $8"
+		nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose packages install $8"
+	${Loop}
+	FileClose $0
+
 SectionEnd
 
-Section "Update MiKTeX.full"
-	StrCpy $MIKTEXDIR "$EXEDIR\MiKTeX.full"
-	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" "$MIKTEXDIR\miktex\bin;$R0"
-	WriteRegStr HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "Install" "$MIKTEXDIR"
-	CopyFiles "$MIKTEXDIR\miktex\config\update.dat" "$EXEDIR\Update_MiKTeX.full.exe"
-	ExecWait "$EXEDIR\Update_MiKTeX.full.exe"
-	Delete "$EXEDIR\Update_MiKTeX.full.exe"
-	ExecWait "$MIKTEXDIR\miktex\bin\mpm_mfc.exe"
-SectionEnd
+Section "Update databases"
 
-Section -Finish
-	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" "$R0"
+	DetailPrint "Update MiKTeX file name database"
+	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose fndb refresh"
+	nsExec::ExecToLog "miktex.exe --disable-installer --verbose fndb refresh"
+	DetailPrint "Update MiKTeX updmap database"
+	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose fontmaps configure"
 
-	${If} $0 != ""
-		WriteRegStr HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "Install" "$0"
-		WriteRegStr HKLM "Software\MiKTeX.org\MiKTeX\${VERSION}\Core" "SharedSetup" "$1"
-		WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "AutoInstall" "$2"
-		WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RemoteRepository" "$3"
-		WriteRegStr HKCU "Software\MiKTeX.org\MiKTeX\${VERSION}\MPM" "RepositoryType" "$4"
-	${Else}
-		DeleteRegKey HKLM "Software\MiKTeX.org"
-		DeleteRegKey HKCU "Software\MiKTeX.org"
-	${EndIf}
 SectionEnd
