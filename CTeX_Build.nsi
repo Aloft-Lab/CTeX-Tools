@@ -22,10 +22,18 @@ ShowInstDetails show
 !define INI_Sec "CTeX"
 !define INI_Key "BuildNumber"
 
-!macro _Build NAME OPTIONS
+!macro _BuildWait NAME OPTIONS
 	nsExec::ExecToLog '"${Make}" /INPUTCHARSET UTF8 ${OPTIONS} ${NAME}'
 	Pop $0
 	${If} $0 != 0
+		Abort
+	${EndIf}
+!macroend
+!define BuildWait "!insertmacro _BuildWait"
+
+!macro _Build NAME OPTIONS
+	Exec '"${Make}" /INPUTCHARSET UTF8 /PAUSE ${OPTIONS} ${NAME}'
+	${If} ${Errors}
 		Abort
 	${EndIf}
 !macroend
@@ -40,7 +48,7 @@ Section
 SectionEnd
 
 Section "Build Repair" Sec_Repair
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_REPAIR"
+	${BuildWait} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_REPAIR"
 SectionEnd
 
 Section /o "Build Update" Sec_Update
