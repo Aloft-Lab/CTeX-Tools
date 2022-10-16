@@ -1,6 +1,9 @@
 
 !include "LogicLib.nsh"
 !include "TextFunc.nsh"
+!include "StrFunc.nsh"
+
+${Using:StrFunc} StrCase
 
 Name "MiKTeX Update"
 OutFile "MiKTeX_Update.exe"
@@ -15,10 +18,22 @@ ShowInstDetails show
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
+Var UseMPM
+
+Section /o "Use MPM"
+
+	StrCpy $UseMPM "Yes"
+
+SectionEnd
+
 Section "Update packages"
 
 	DetailPrint "Update MiKTeX packages"
-	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose packages update"
+	${If} $UseMPM == ""
+		nsExec::ExecToLog "miktex.exe --admin --verbose packages update"
+	${Else}
+		nsExec::ExecToLog "mpm.exe --admin --verbose --update"
+	${EndIf}
 
 SectionEnd
 
@@ -33,7 +48,12 @@ Section /o "Install packages"
 		${EndIf}
 		${TrimNewLines} $9 $8
 		DetailPrint "Installing $8"
-		nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose packages install $8"
+		${StrCase} $7 $8 "L"
+		${If} $UseMPM == ""
+			nsExec::ExecToLog "miktex.exe --admin --verbose packages install $7"
+		${Else}
+			nsExec::ExecToLog "mpm.exe --admin --verbose --install=$7"
+		${EndIf}
 	${Loop}
 	FileClose $0
 
@@ -42,9 +62,19 @@ SectionEnd
 Section "Update databases"
 
 	DetailPrint "Update MiKTeX file name database"
-	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose fndb refresh"
-	nsExec::ExecToLog "miktex.exe --disable-installer --verbose fndb refresh"
+	${If} $UseMPM == ""
+		nsExec::ExecToLog "miktex.exe --admin --verbose fndb refresh"
+		nsExec::ExecToLog "miktex.exe --verbose fndb refresh"
+	${Else}
+		nsExec::ExecToLog "initexmf.exe --admin --verbose --update-fndb"
+		nsExec::ExecToLog "initexmf.exe --verbose --update-fndb"
+	${EndIf}
+
 	DetailPrint "Update MiKTeX updmap database"
-	nsExec::ExecToLog "miktex.exe --admin --disable-installer --verbose fontmaps configure"
+	${If} $UseMPM == ""
+		nsExec::ExecToLog "miktex.exe --admin --verbose fontmaps configure"
+	${Else}
+		nsExec::ExecToLog "initexmf.exe --admin --verbose --mkmaps"
+	${EndIf}
 
 SectionEnd
