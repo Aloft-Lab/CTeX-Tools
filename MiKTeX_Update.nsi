@@ -20,13 +20,29 @@ ShowInstDetails show
 
 Var UseMPM
 
-Section /o "Use MPM"
+!macro _InstallPackages LIST_FILE
+	FileOpen $0 "$EXEDIR\${LIST_FILE}" "r"
+	${Do}
+		FileRead $0 $9
+		${If} $9 == ""
+			${ExitDo}
+		${EndIf}
+		${TrimNewLines} $9 $8
+		DetailPrint "Installing $8"
+		${StrCase} $7 $8 "L"
+		nsExec::ExecToLog "miktex.exe --admin --verbose packages install $7"
+	${Loop}
+	FileClose $0
+!macroend
+!define InstallPackages "!insertmacro _InstallPackages"
+
+Section /o "Use MPM" Sec_Use_MPM
 
 	StrCpy $UseMPM "Yes"
 
 SectionEnd
 
-Section "Update packages"
+Section "Update packages" Sec_Update_packages
 
 	DetailPrint "Update MiKTeX packages"
 	${If} $UseMPM == ""
@@ -37,44 +53,49 @@ Section "Update packages"
 
 SectionEnd
 
-Section /o "Install packages"
+Section /o "Required packages" Sec_Required_packages
 
 	DetailPrint "Install required packages"
-	FileOpen $0 "$EXEDIR\required_packages.txt" "r"
-	${Do}
-		FileRead $0 $9
-		${If} $9 == ""
-			${ExitDo}
-		${EndIf}
-		${TrimNewLines} $9 $8
-		DetailPrint "Installing $8"
-		${StrCase} $7 $8 "L"
-		${If} $UseMPM == ""
-			nsExec::ExecToLog "miktex.exe --admin --verbose packages install $7"
-		${Else}
-			nsExec::ExecToLog "mpm.exe --admin --verbose --install=$7"
-		${EndIf}
-	${Loop}
-	FileClose $0
+	${InstallPackages} "required_packages.txt"
 
 SectionEnd
 
-Section "Update databases"
+Section /o "Full packages" Sec_Full_packages
+
+	DetailPrint "Install full packages"
+	FileOpen $0 "$EXEDIR\get_list.cmd" "w"
+	FileWrite $0 'miktex.exe --admin --verbose packages list >"$EXEDIR\full_packages.txt"'
+	FileClose $0
+	nsExec::ExecToLog "$EXEDIR\get_list.cmd"
+	${InstallPackages} "full_packages.txt"
+	Delete "$EXEDIR\get_list.cmd"
+	Delete "$EXEDIR\full_packages.txt"
+
+SectionEnd
+
+Section "Update databases" Sec_Update_databases
 
 	DetailPrint "Update MiKTeX file name database"
-	${If} $UseMPM == ""
-		nsExec::ExecToLog "miktex.exe --admin --verbose fndb refresh"
-		nsExec::ExecToLog "miktex.exe --verbose fndb refresh"
-	${Else}
-		nsExec::ExecToLog "initexmf.exe --admin --verbose --update-fndb"
-		nsExec::ExecToLog "initexmf.exe --verbose --update-fndb"
-	${EndIf}
+	nsExec::ExecToLog "miktex.exe --admin --verbose fndb refresh"
+	nsExec::ExecToLog "miktex.exe --verbose fndb refresh"
 
 	DetailPrint "Update MiKTeX updmap database"
-	${If} $UseMPM == ""
-		nsExec::ExecToLog "miktex.exe --admin --verbose fontmaps configure"
-	${Else}
-		nsExec::ExecToLog "initexmf.exe --admin --verbose --mkmaps"
-	${EndIf}
+	nsExec::ExecToLog "miktex.exe --admin --verbose fontmaps configure"
 
 SectionEnd
+
+Function .onSelChange
+	${If} $0 == ${Sec_Use_MPM}
+		${If} ${SectionIsSelected} ${Sec_Use_MPM}
+			!insertmacro UnselectSection ${Sec_Required_packages}
+			!insertmacro UnselectSection ${Sec_Full_packages}
+			!insertmacro UnselectSection ${Sec_Update_databases}
+		${EndIf}
+	${Else}
+		${If} ${SectionIsSelected} ${Sec_Required_packages}
+		${OrIf} ${SectionIsSelected} ${Sec_Full_packages}
+		${OrIf} ${SectionIsSelected} ${Sec_Update_databases}
+			!insertmacro UnselectSection ${Sec_Use_MPM}
+		${EndIf}
+	${EndIf}
+FunctionEnd
