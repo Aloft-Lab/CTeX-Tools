@@ -18,9 +18,7 @@ ShowInstDetails show
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
-Var UseMPM
-
-!macro _InstallPackages LIST_FILE
+!macro _MiKTeXPackages ACTION INFO LIST_FILE
 	FileOpen $0 "$EXEDIR\${LIST_FILE}" "r"
 	${Do}
 		FileRead $0 $9
@@ -28,39 +26,39 @@ Var UseMPM
 			${ExitDo}
 		${EndIf}
 		${TrimNewLines} $9 $8
-		DetailPrint "Installing $8"
+		DetailPrint "${INFO} $8"
 		${StrCase} $7 $8 "L"
-		nsExec::ExecToLog "miktex.exe --admin --verbose packages install $7"
+		nsExec::ExecToLog "miktex.exe --admin --verbose packages ${ACTION} $7"
 	${Loop}
 	FileClose $0
 !macroend
-!define InstallPackages "!insertmacro _InstallPackages"
+!define InstallPackages '!insertmacro _MiKTeXPackages "install" "Installing"'
+!define RemovePackages '!insertmacro _MiKTeXPackages "remove" "Removing"'
 
-Section /o "Use MPM" Sec_Use_MPM
+Section /o "Update (MPM)" Sec_Update_MPM
 
-	StrCpy $UseMPM "Yes"
+	DetailPrint "Update MiKTeX packages"
+	nsExec::ExecToLog "mpm.exe --admin --verbose --update"
 
 SectionEnd
 
 Section "Update packages" Sec_Update_packages
 
 	DetailPrint "Update MiKTeX packages"
-	${If} $UseMPM == ""
-		nsExec::ExecToLog "miktex.exe --admin --verbose packages update"
-	${Else}
-		nsExec::ExecToLog "mpm.exe --admin --verbose --update"
-	${EndIf}
+	nsExec::ExecToLog "miktex.exe --admin --verbose packages update"
 
 SectionEnd
 
-Section /o "Required packages" Sec_Required_packages
+SectionGroup "Customize packages" Sec_Customize_packages
+
+Section /o "Install required" Sec_Install_Required
 
 	DetailPrint "Install required packages"
 	${InstallPackages} "required_packages.txt"
 
 SectionEnd
 
-Section /o "Full packages" Sec_Full_packages
+Section /o "Install full" Sec_Install_full
 
 	DetailPrint "Install full packages"
 	FileOpen $0 "$EXEDIR\get_list.cmd" "w"
@@ -72,6 +70,15 @@ Section /o "Full packages" Sec_Full_packages
 	Delete "$EXEDIR\full_packages.txt"
 
 SectionEnd
+
+Section /o "Remove inessential" Sec_Remove_inessential
+
+	DetailPrint "Remove inessential packages"
+	${RemovePackages} "inessential_packages.txt"
+
+SectionEnd
+
+SectionGroupEnd
 
 Section "Update databases" Sec_Update_databases
 
@@ -85,17 +92,18 @@ Section "Update databases" Sec_Update_databases
 SectionEnd
 
 Function .onSelChange
-	${If} $0 == ${Sec_Use_MPM}
-		${If} ${SectionIsSelected} ${Sec_Use_MPM}
-			!insertmacro UnselectSection ${Sec_Required_packages}
-			!insertmacro UnselectSection ${Sec_Full_packages}
+	${If} $0 == ${Sec_Update_MPM}
+		${If} ${SectionIsSelected} ${Sec_Update_MPM}
+			!insertmacro UnselectSection ${Sec_Update_packages}
+			!insertmacro UnselectSection ${Sec_Customize_packages}
 			!insertmacro UnselectSection ${Sec_Update_databases}
 		${EndIf}
 	${Else}
-		${If} ${SectionIsSelected} ${Sec_Required_packages}
-		${OrIf} ${SectionIsSelected} ${Sec_Full_packages}
+		${If} ${SectionIsSelected} ${Sec_Update_packages}
+		${OrIf} ${SectionIsSelected} ${Sec_Customize_packages}
+		${OrIf} ${SectionIsPartiallySelected} ${Sec_Customize_packages}
 		${OrIf} ${SectionIsSelected} ${Sec_Update_databases}
-			!insertmacro UnselectSection ${Sec_Use_MPM}
+			!insertmacro UnselectSection ${Sec_Update_MPM}
 		${EndIf}
 	${EndIf}
 FunctionEnd
