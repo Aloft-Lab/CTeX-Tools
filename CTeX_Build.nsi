@@ -83,12 +83,7 @@ Section /o "Full (x86)" Sec_Full_x86
 SectionEnd
 SectionGroupEnd
 
-Section "Increment build number"
-	${IfNot} ${Errors}
-		Call ReadBuildNumber
-		Call UpdateBuildNumber
-		Call WriteBuildNumber
-	${EndIf}
+Section "Increment build number" Sec_Inc_Build_Number
 SectionEnd
 
 Function .onInit
@@ -100,6 +95,14 @@ Function .onInit
 		!insertmacro SelectSection ${Sec_Update}
 		!insertmacro SelectSection ${Sec_Basic_Group}
 		!insertmacro SelectSection ${Sec_Full_Group}
+	${EndIf}
+FunctionEnd
+
+Function .onInstSuccess
+	${If} ${SectionIsSelected} ${Sec_Inc_Build_Number}
+		Call ReadBuildNumber
+		Call UpdateBuildNumber
+		Call WriteBuildNumber
 	${EndIf}
 FunctionEnd
 
