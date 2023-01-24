@@ -61,13 +61,11 @@ SectionEnd
 Section /o "Install full" Sec_Install_full
 
 	DetailPrint "Install full packages"
-	FileOpen $0 "$EXEDIR\get_list.cmd" "w"
-	FileWrite $0 'miktex.exe --admin --verbose packages list >"$EXEDIR\full_packages.txt"'
-	FileClose $0
-	nsExec::ExecToLog "$EXEDIR\get_list.cmd"
-	${InstallPackages} "full_packages.txt"
-	Delete "$EXEDIR\get_list.cmd"
-	Delete "$EXEDIR\full_packages.txt"
+	repeat:
+	nsExec::ExecToLog "miktex.exe --admin --verbose packages upgrade complete"
+	Pop $0
+	IntCmp $0 0 done repeat repeat
+	done:
 
 SectionEnd
 
