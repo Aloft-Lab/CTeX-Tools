@@ -54,7 +54,11 @@ SectionGroup "Customize packages" Sec_Customize_packages
 Section /o "Install required" Sec_Install_Required
 
 	DetailPrint "Install required packages"
-	${InstallPackages} "required_packages.txt"
+	repeat:
+	nsExec::ExecToLog "miktex.exe --admin --verbose packages require --package-id-file required_packages.txt"
+	Pop $0
+	IntCmp $0 0 done repeat repeat
+	done:
 
 SectionEnd
 
