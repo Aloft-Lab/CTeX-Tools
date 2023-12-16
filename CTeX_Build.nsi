@@ -18,12 +18,13 @@ ShowInstDetails show
 
 
 !define Make "$PROGRAMFILES\NSIS\makensis.exe"
+!define Common_Options "/INPUTCHARSET UTF8"
 !define INI_File "$EXEDIR\CTeX_Build.ini"
 !define INI_Sec "CTeX"
 !define INI_Key "BuildNumber"
 
 !macro _BuildWait NAME OPTIONS
-	nsExec::ExecToLog '"${Make}" /INPUTCHARSET UTF8 ${OPTIONS} ${NAME}'
+	nsExec::ExecToLog '"${Make}" ${Common_Options} ${OPTIONS} ${NAME}'
 	Pop $0
 	${If} $0 != 0
 		Abort
@@ -32,7 +33,7 @@ ShowInstDetails show
 !define BuildWait "!insertmacro _BuildWait"
 
 !macro _Build NAME OPTIONS
-	Exec '"${Make}" /INPUTCHARSET UTF8 /PAUSE ${OPTIONS} ${NAME}'
+	Exec '"${Make}" ${Common_Options} /PAUSE ${OPTIONS} ${NAME}'
 	${If} ${Errors}
 		Abort
 	${EndIf}
@@ -74,13 +75,13 @@ Section /o "Full" Sec_Full
 	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL"
 SectionEnd
 
-Section /o "Full (x64)" Sec_Full_x64
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
-SectionEnd
+#Section /o "Full (x64)" Sec_Full_x64
+#	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
+#SectionEnd
 
-Section /o "Full (x86)" Sec_Full_x86
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
-SectionEnd
+#Section /o "Full (x86)" Sec_Full_x86
+#	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
+#SectionEnd
 SectionGroupEnd
 
 Section "Increment build number" Sec_Inc_Build_Number
