@@ -19,7 +19,8 @@ ShowInstDetails show
 
 !define Make "$PROGRAMFILES\NSIS\makensis.exe"
 !define Common_Options "/INPUTCHARSET UTF8"
-!define INI_File "$EXEDIR\CTeX_Build.ini"
+!define NUM_File "$EXEDIR\CTeX_BuildNum.nsh"
+!define INI_File "$EXEDIR\CTeX_BuildNum.ini"
 !define INI_Sec "CTeX"
 !define INI_Key "BuildNumber"
 
@@ -130,7 +131,7 @@ Function UpdateBuildNumber
 FunctionEnd
 
 Function WriteBuildNumber
-	FileOpen $0 "$EXEDIR\CTeX_Build.nsh" "w"
+	FileOpen $0 "${NUM_File}" "w"
 	FileWrite $0 '!define BUILD_NUMBER "$Build_Number"$\r$\n'
 	FileClose $0
 FunctionEnd
