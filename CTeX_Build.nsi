@@ -46,10 +46,15 @@ ShowInstDetails show
 
 Var Build_Number
 Var BUILD_ALL
+var DEBUG_MODE
 
 Section
 	Call ReadBuildNumber
 	Call WriteBuildNumber
+SectionEnd
+
+Section /o "Debug Mode" Sec_Debug
+	StrCpy $DEBUG_MODE "/DDEBUG_MODE"
 SectionEnd
 
 Section "Build Repair" Sec_Repair
@@ -57,34 +62,34 @@ Section "Build Repair" Sec_Repair
 SectionEnd
 
 Section /o "Build Update" Sec_Update
-	${Build} "$EXEDIR\CTeX_Update.nsi" ""
+	${Build} "$EXEDIR\CTeX_Update.nsi" "$DEBUG_MODE"
 SectionEnd
 
 SectionGroup "Build Basic Version" Sec_Basic_Group
 Section "Basic" Sec_Basic
-	${Build} "$EXEDIR\CTeX_Setup.nsi" ""
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE"
 SectionEnd
 
 Section "Basic (x64)" Sec_Basic_x64
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_X64_ONLY"
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE /DBUILD_X64_ONLY"
 SectionEnd
 
 Section "Basic (x86)" Sec_Basic_x86
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_X86_ONLY"
+	${Build} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE /DBUILD_X86_ONLY"
 SectionEnd
 SectionGroupEnd
 
 SectionGroup "Build Full Version" Sec_Full_Group
 Section /o "Full" Sec_Full
-	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL"
+	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE /DBUILD_FULL"
 SectionEnd
 
 #Section /o "Full (x64)" Sec_Full_x64
-#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
+#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE /DBUILD_FULL /DBUILD_X64_ONLY"
 #SectionEnd
 
 #Section /o "Full (x86)" Sec_Full_x86
-#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
+#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "$DEBUG_MODE /DBUILD_FULL /DBUILD_X86_ONLY"
 #SectionEnd
 SectionGroupEnd
 
