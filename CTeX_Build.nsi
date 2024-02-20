@@ -17,29 +17,32 @@ ShowInstDetails show
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
 
-!define Make "$PROGRAMFILES\NSIS\makensis.exe"
+!define NSIS "$PROGRAMFILES\NSIS\makensis.exe"
+!define NSISBI "$PROGRAMFILES\NSISBI\makensis.exe"
 !define Common_Options "/INPUTCHARSET UTF8"
 !define NUM_File "$EXEDIR\CTeX_BuildNum.nsh"
 !define INI_File "$EXEDIR\CTeX_BuildNum.ini"
 !define INI_Sec "CTeX"
 !define INI_Key "BuildNumber"
 
-!macro _BuildWait NAME OPTIONS
-	nsExec::ExecToLog '"${Make}" ${Common_Options} ${OPTIONS} ${NAME}'
+!macro _BuildWait MAKE NAME OPTIONS
+	nsExec::ExecToLog '"${MAKE}" ${Common_Options} ${OPTIONS} ${NAME}'
 	Pop $0
 	${If} $0 != 0
 		Abort
 	${EndIf}
 !macroend
-!define BuildWait "!insertmacro _BuildWait"
+!define BuildWait "!insertmacro _BuildWait ${NSIS}"
+!define BuildWaitBI "!insertmacro _BuildWait ${NSISBI}"
 
-!macro _Build NAME OPTIONS
-	Exec '"${Make}" ${Common_Options} /PAUSE ${OPTIONS} ${NAME}'
+!macro _Build MAKE NAME OPTIONS
+	Exec '"${MAKE}" ${Common_Options} /PAUSE ${OPTIONS} ${NAME}'
 	${If} ${Errors}
 		Abort
 	${EndIf}
 !macroend
-!define Build "!insertmacro _Build"
+!define Build "!insertmacro _Build ${NSIS}"
+!define BuildBI "!insertmacro _Build ${NSISBI}"
 
 Var Build_Number
 Var BUILD_ALL
@@ -73,15 +76,15 @@ SectionGroupEnd
 
 SectionGroup "Build Full Version" Sec_Full_Group
 Section /o "Full" Sec_Full
-	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL"
+	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL"
 SectionEnd
 
 #Section /o "Full (x64)" Sec_Full_x64
-#	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
+#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X64_ONLY"
 #SectionEnd
 
 #Section /o "Full (x86)" Sec_Full_x86
-#	${Build} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
+#	${BuildBI} "$EXEDIR\CTeX_Setup.nsi" "/DBUILD_FULL /DBUILD_X86_ONLY"
 #SectionEnd
 SectionGroupEnd
 
